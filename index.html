@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tugas PAW JavaScript Dasar: Kalkulator</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="wadah">
+      <div class="kalkulator">
+        <div class="layar">
+          <div id="ekspresi"></div>
+          <div id="hasil">0</div>
+        </div>
+        <div class="tombol">
+          <button class="aksi" data-aksi="clear">C</button>
+          <button class="aksi" data-aksi="hapus">⌫</button>
+          <button class="aksi" data-aksi="persen">%</button>
+          <button class="operator" data-op="/">÷</button>
+
+          <button data-angka="7">7</button>
+          <button data-angka="8">8</button>
+          <button data-angka="9">9</button>
+          <button class="operator" data-op="*">×</button>
+
+          <button data-angka="4">4</button>
+          <button data-angka="5">5</button>
+          <button data-angka="6">6</button>
+          <button class="operator" data-op="-">−</button>
+
+          <button data-angka="1">1</button>
+          <button data-angka="2">2</button>
+          <button data-angka="3">3</button>
+          <button class="operator" data-op="+">+</button>
+
+          <button data-angka="0" class="lebar">0</button>
+          <button data-aksi="titik">.</button>
+          <button class="sama" data-aksi="sama">=</button>
+        </div>
+      </div>
+
+      <aside class="panel-riwayat">
+        <header>
+          <h2>Riwayat</h2>
+          <button id="hapusRiwayat">Hapus semua</button>
+        </header>
+        <p id="kosong">Belum ada perhitungan.</p>
+        <ul id="daftarRiwayat"></ul>
+      </aside>
+    </div>
+    <script>
+      const hasilNode = document.getElementById("hasil");
+      const ekspresiNode = document.getElementById("ekspresi");
+      const daftarNode = document.getElementById("daftarRiwayat");
+      const kosongNode = document.getElementById("kosong");
+
+      let angkaSekarang = "0";
+      let angkaSebelumnya = null;
+      let operator = null;
+      let resetLayar = false;
+      let riwayat = [];
+
+      const simbol = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+
+      // ===== Riwayat =====
+      const simpanRiwayat = () => {
+        try { localStorage.setItem("riwayatKalkulator", JSON.stringify(riwayat)); } catch (e) {}
+      };
+
+      const muatRiwayat = () => {
+        try {
+          const data = localStorage.getItem("riwayatKalkulator");
+          if (data) riwayat = JSON.parse(data);
+        } catch (e) { riwayat = []; }
+      };
+
+      const tampilkanRiwayat = () => {
+        daftarNode.innerHTML = "";
+        kosongNode.style.display = riwayat.length === 0 ? "block" : "none";
+        // Perhitungan terbaru di paling atas
+        riwayat.forEach((item, index) => {
+          const li = document.createElement("li");
+          li.dataset.index = index;
+          li.title = "Klik untuk memakai hasil ini";
+          li.innerHTML =
+            `<span class="rumus">${item.rumus}</span>` +
+            `<span class="nilai">${item.hasil}</span>`;
+          daftarNode.appendChild(li);
+        });
+      };
+
+      const tambahRiwayat = (rumus, hasil) => {
+        riwayat.unshift({ rumus, hasil });
+        if (riwayat.length > 20) riwayat.pop(); // simpan maksimal 20 data
+        simpanRiwayat();
+        tampilkanRiwayat();
+      };
+
+      // Klik item riwayat -> hasilnya dipakai lagi di layar
+      daftarNode.addEventListener("click", (e) => {
+        const li = e.target.closest("li");
+        if (!li) return;
+        angkaSekarang = riwayat[li.dataset.index].hasil;
+        angkaSebelumnya = null;
+        operator = null;
+        resetLayar = true;
+        ekspresiNode.innerHTML = "";
+        hasilNode.innerHTML = angkaSekarang;
+      });
+
+      document.getElementById("hapusRiwayat").addEventListener("click", () => {
+        riwayat = [];
+        simpanRiwayat();
+        tampilkanRiwayat();
+      });
+
+      // ===== Kalkulator =====
+      const tampilkan = () => {
+        hasilNode.innerHTML = angkaSekarang;
+        ekspresiNode.innerHTML =
+          operator !== null ? `${angkaSebelumnya} ${simbol[operator]}` : "";
+      };
+
+      const hitung = (a, b, op) => {
+        a = parseFloat(a);
+        b = parseFloat(b);
+        let hasil;
+        switch (op) {
+          case "+": hasil = a + b; break;
+          case "-": hasil = a - b; break;
+          case "*": hasil = a * b; break;
+          case "/":
+            if (b === 0) return "Error";
+            hasil = a / b;
+            break;
+          default: return String(b);
+        }
+        // Hindari hasil seperti 0.1 + 0.2 = 0.30000000000000004
+        return String(parseFloat(hasil.toPrecision(12)));
+      };
+
+      const inputAngka = (angka) => {
+        if (angkaSekarang === "Error") angkaSekarang = "0";
+        if (angkaSekarang === "0" || resetLayar) {
+          angkaSekarang = angka;
+          resetLayar = false;
+        } else {
+          angkaSekarang += angka;
+        }
+        tampilkan();
+      };
+
+      const inputOperator = (op) => {
+        if (angkaSekarang === "Error") return;
+        if (operator !== null && !resetLayar) {
+          const rumus = `${angkaSebelumnya} ${simbol[operator]} ${angkaSekarang} =`;
+          angkaSekarang = hitung(angkaSebelumnya, angkaSekarang, operator);
+          if (angkaSekarang !== "Error") tambahRiwayat(rumus, angkaSekarang);
+        }
+        angkaSebelumnya = angkaSekarang;
+        operator = op;
+        resetLayar = true;
+        tampilkan();
+        if (angkaSekarang === "Error") {
+          operator = null;
+          ekspresiNode.innerHTML = "";
+        }
+      };
+
+      const sama = () => {
+        if (operator === null || angkaSekarang === "Error") return;
+        const rumus = `${angkaSebelumnya} ${simbol[operator]} ${angkaSekarang} =`;
+        ekspresiNode.innerHTML = rumus;
+        angkaSekarang = hitung(angkaSebelumnya, angkaSekarang, operator);
+        if (angkaSekarang !== "Error") tambahRiwayat(rumus, angkaSekarang);
+        operator = null;
+        angkaSebelumnya = null;
+        resetLayar = true;
+        hasilNode.innerHTML = angkaSekarang;
+      };
+
+      const aksi = (nama) => {
+        if (nama === "clear") {
+          angkaSekarang = "0";
+          angkaSebelumnya = null;
+          operator = null;
+          resetLayar = false;
+        } else if (nama === "hapus") {
+          if (resetLayar || angkaSekarang === "Error") return;
+          angkaSekarang = angkaSekarang.length > 1 ? angkaSekarang.slice(0, -1) : "0";
+        } else if (nama === "titik") {
+          if (resetLayar) { angkaSekarang = "0"; resetLayar = false; }
+          if (!angkaSekarang.includes(".")) angkaSekarang += ".";
+        } else if (nama === "persen") {
+          if (angkaSekarang === "Error") return;
+          angkaSekarang = String(parseFloat(angkaSekarang) / 100);
+        } else if (nama === "sama") {
+          sama();
+          return;
+        }
+        tampilkan();
+      };
+
+      // Satu event listener untuk semua tombol
+      document.querySelector(".tombol").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        if (btn.dataset.angka !== undefined) inputAngka(btn.dataset.angka);
+        else if (btn.dataset.op !== undefined) inputOperator(btn.dataset.op);
+        else if (btn.dataset.aksi !== undefined) aksi(btn.dataset.aksi);
+      });
+
+      // Dukungan keyboard
+      document.addEventListener("keydown", (e) => {
+        if (/^[0-9]$/.test(e.key)) inputAngka(e.key);
+        else if (["+", "-", "*", "/"].includes(e.key)) inputOperator(e.key);
+        else if (e.key === "." || e.key === ",") aksi("titik");
+        else if (e.key === "Enter" || e.key === "=") { e.preventDefault(); sama(); }
+        else if (e.key === "Backspace") aksi("hapus");
+        else if (e.key === "Escape") aksi("clear");
+      });
+
+      // Muat riwayat saat halaman dibuka
+      muatRiwayat();
+      tampilkanRiwayat();
+    </script>
+  </body>
+</html>

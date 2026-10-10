@@ -1,0 +1,82 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #000;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+.wadah { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; align-items: flex-start; }
+.kalkulator, .panel-riwayat {
+  padding: 16px;
+  background: #121212;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.kalkulator { width: 320px; }
+.layar {
+  background: #000;
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  text-align: right;
+  min-height: 84px;
+  overflow-x: auto;
+}
+#ekspresi { color: #8b97a8; font-size: 14px; min-height: 20px; }
+#hasil { font-size: 34px; font-weight: 600; margin-top: 6px; }
+.tombol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+button {
+  padding: 16px 0;
+  font-size: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #4a4a4a;
+  color: #fff;
+  cursor: pointer;
+}
+button:hover { background: #5f5f5f; }
+button:focus-visible { outline: 3px solid #fff; }
+
+/* Tombol kalkulator bundar */
+.tombol button { aspect-ratio: 1; padding: 0; border-radius: 50%; }
+.tombol .lebar { grid-column: span 2; aspect-ratio: auto; border-radius: 999px; }
+
+/* Angka = abu-abu, operator = kuning */
+.operator, .sama { background: #f2b705; color: #000; font-weight: 600; }
+.operator:hover, .sama:hover { background: #ffd23f; }
+.aksi { background: #9a9a9a; color: #000; }
+.aksi:hover { background: #b3b3b3; }
+
+/* Panel riwayat */
+.panel-riwayat { width: 260px; color: #fff; }
+.panel-riwayat header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.panel-riwayat h2 { margin: 0; font-size: 18px; }
+#hapusRiwayat { padding: 6px 12px; font-size: 13px; background: #4a4a4a; color: #fff; }
+#daftarRiwayat {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 330px;
+  overflow-y: auto;
+}
+#daftarRiwayat li {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: #000;
+  border-radius: 12px;
+  text-align: right;
+  cursor: pointer;
+}
+#daftarRiwayat li:hover { background: #222; }
+#daftarRiwayat .rumus { display: block; font-size: 13px; color: #8b97a8; }
+#daftarRiwayat .nilai { font-size: 18px; font-weight: 600; }
+#kosong { color: #8b97a8; font-size: 14px; }
